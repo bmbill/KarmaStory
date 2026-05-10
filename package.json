@@ -1,0 +1,23 @@
+{
+  "name": "karma-stories",
+  "version": "0.1.0",
+  "description": "業果故事推播 PWA — 配合廣論思惟業果",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "convert": "node tools/convert-docx.mjs",
+    "hooks": "node tools/write-hooks.mjs",
+    "tag-kepan": "node tools/tag-kepan.mjs",
+    "tts": "node tools/generate-all-tts.mjs",
+    "compress-audio": "node tools/compress-audio.mjs",
+    "build": "node tools/build-dist.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.88.0",
+    "mammoth": "^1.7.2"
+  },
+  "devDependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "ws": "^8.20.0"
+  }
+}

@@ -1,0 +1,24 @@
+name = "karma-stories-push"
+main = "index.js"
+compatibility_date = "2024-09-01"
+
+# Cron — 每 10 分鐘掃一次訂閱，到時間就推
+[triggers]
+crons = ["*/10 * * * *"]
+
+# 環境變數 (非機密) — 部署前用 dashboard 或 wrangler 設定
+[vars]
+VAPID_PUBLIC = "BLvu1hkHQSBvVX_RoJoYRqbvybpA6k5RWYZIcHZXpirVSE9Meu4DU57-S4j-O9360H_Z4bAPiDCuMFcfzWQufpQ"
+VAPID_SUBJECT = "mailto:bmbill2000@gmail.com"
+
+# 機密 — 用 `wrangler secret put VAPID_PRIVATE_JWK` 設定
+# 內容是 JSON.stringify 後的 JWK 私鑰
+
+# KV namespaces — 用 `wrangler kv:namespace create SUBS` / STORIES 取 id
+[[kv_namespaces]]
+binding = "SUBS"
+id = "c162ccf263f44b4e877db253ea189f28"
+
+[[kv_namespaces]]
+binding = "STORIES"
+id = "38b4f0a1a497434bb3c4713ba94546ec"

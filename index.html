@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#8b6f47" />
+<title>業果故事 — 意樂提策</title>
+<link rel="manifest" href="manifest.json" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;700&family=LXGW+WenKai+TC:wght@400&display=swap" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#f5f0eb; --card:#fff; --text:#2c2416; --muted:#7a6f62;
+  --accent:#8b6f47; --accent-lt:#c4a97d; --accent-bg:#f0e6d8;
+  --border:#e0d6c8; --shadow:rgba(90,70,40,.08);
+  --green:#5a8a5e; --green-bg:#e8f5e9;
+  --r:12px; --r-sm:8px;
+  --serif:"Noto Serif TC",serif;
+  --sans:"Noto Sans TC","Source Han Sans TC",system-ui,sans-serif;
+  --fs:1rem;
+}
+[data-theme="dark"] {
+  --bg:#1a1612; --card:#28221c; --text:#e8e0d4; --muted:#9c8f7e;
+  --accent:#c4a97d; --accent-lt:#d8be94; --accent-bg:#3a3028;
+  --border:#3a3028; --shadow:rgba(0,0,0,.4);
+  --green:#7eb682; --green-bg:#2a3a2c;
+}
+html { font-size:16px; -webkit-text-size-adjust:100%; touch-action:manipulation; }
+body {
+  font-family:var(--sans); background:var(--bg); color:var(--text);
+  line-height:1.7; min-height:100dvh; -webkit-font-smoothing:antialiased;
+  padding-bottom:64px;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-user-select:none; user-select:none;
+}
+/* 允許閱讀內容可選取 */
+.reader-bd, .hook, .quote { -webkit-user-select:text; user-select:text; }
+/* iOS: 16px 以上才不會自動 zoom 進輸入框 */
+input, select, textarea, button { font-size:16px; }
+#app { max-width:640px; margin:0 auto; padding:14px 14px env(safe-area-inset-bottom,12px); }
+
+/* Header */
+.hd { text-align:center; padding:14px 0 14px; }
+.hd h1 { font-family:var(--serif); font-size:1.35rem; font-weight:700; color:var(--accent); letter-spacing:.06em; }
+.hd .date { font-size:.82rem; color:var(--muted); margin-top:3px; }
+
+/* Tabs */
+.tabs {
+  position:fixed; bottom:0; left:0; right:0;
+  background:var(--card); border-top:1px solid var(--border);
+  display:flex; justify-content:space-around;
+  padding:6px 0 calc(6px + env(safe-area-inset-bottom,0)); z-index:50;
+}
+.tab {
+  flex:1; background:none; border:none; cursor:pointer;
+  padding:6px 0; font-family:inherit; font-size:.7rem; color:var(--muted);
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  transition:color .15s;
+}
+.tab .ico { font-size:1.3rem; line-height:1; }
+.tab.active { color:var(--accent); }
+
+/* Cards */
+.card {
+  background:var(--card); border-radius:var(--r);
+  box-shadow:0 1px 6px var(--shadow); padding:14px 16px; margin-bottom:14px;
+}
+.card-title {
+  font-family:var(--serif); font-size:.95rem; font-weight:600;
+  color:var(--accent); margin-bottom:10px; letter-spacing:.04em;
+  display:flex; align-items:center; gap:8px;
+}
+.card-title::before { content:""; width:3px; height:14px; background:var(--accent); border-radius:2px; }
+
+/* Quote card */
+.quote {
+  font-family:var(--serif); font-size:1.05rem; line-height:1.95;
+  color:var(--text); padding:6px 4px;
+}
+.quote-src { display:block; text-align:right; font-size:.78rem; color:var(--muted); margin-top:8px; font-family:var(--sans); }
+
+/* Today's story */
+.story-meta {
+  display:flex; align-items:center; gap:6px; font-size:.74rem;
+  color:var(--muted); margin-bottom:8px; flex-wrap:wrap;
+}
+.story-meta .pill {
+  background:var(--accent-bg); color:var(--accent);
+  padding:2px 8px; border-radius:10px; font-weight:600;
+}
+.story-title {
+  font-family:var(--serif); font-size:1.3rem; font-weight:700;
+  margin-bottom:10px; color:var(--text);
+}
+.hook {
+  font-family:var(--serif); font-size:1.02rem; line-height:1.9;
+  color:var(--text); margin-bottom:14px;
+  padding:10px 14px; background:var(--accent-bg);
+  border-left:3px solid var(--accent); border-radius:0 var(--r-sm) var(--r-sm) 0;
+}
+.hook.empty { color:var(--muted); font-style:italic; font-size:.92rem; }
+
+/* Button */
+.btn {
+  display:inline-block; padding:9px 18px; border:none; border-radius:var(--r-sm);
+  font-family:inherit; font-size:.92rem; font-weight:600; cursor:pointer;
+  background:var(--accent); color:#fff; transition:background .15s, transform .1s;
+}
+.btn:hover { background:#7a5e38; }
+.btn:active { transform:scale(.97); }
+.btn:disabled { opacity:.5; cursor:not-allowed; }
+.btn-block { display:block; width:100%; }
+.btn-ghost {
+  background:transparent; color:var(--accent); border:1.5px solid var(--border);
+}
+.btn-ghost:hover { background:var(--accent-bg); border-color:var(--accent); }
+.btn-sm { padding:6px 12px; font-size:.82rem; }
+
+/* Progress */
+.prog-wrap {
+  display:flex; align-items:center; gap:10px; margin-top:6px;
+}
+.prog-bar {
+  flex:1; height:8px; background:var(--accent-bg); border-radius:4px; overflow:hidden;
+}
+.prog-fill { height:100%; background:var(--accent); transition:width .3s; }
+.prog-num { font-size:.82rem; color:var(--muted); white-space:nowrap; }
+
+/* Search */
+.search-bar {
+  display:flex; gap:6px; align-items:center; background:var(--card);
+  border-radius:var(--r-sm); padding:8px 12px; box-shadow:0 1px 6px var(--shadow);
+  margin-bottom:10px;
+}
+.search-bar input {
+  flex:1; border:none; background:none; outline:none;
+  font-family:inherit; font-size:.95rem; color:var(--text);
+}
+.search-bar .ico { color:var(--muted); }
+
+.chips { display:flex; gap:6px; overflow-x:auto; padding:4px 0 8px; -ms-overflow-style:none; scrollbar-width:none; }
+.chips::-webkit-scrollbar { display:none; }
+.chip {
+  flex-shrink:0; padding:5px 12px; border-radius:14px; font-size:.78rem;
+  background:var(--card); color:var(--muted); border:1px solid var(--border);
+  cursor:pointer; transition:all .15s; white-space:nowrap; font-family:inherit;
+}
+.chip.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+.kepan-tree { background:var(--card); border-radius:var(--r-sm); padding:10px 12px; margin-bottom:10px; box-shadow:0 1px 6px var(--shadow); font-size:.86rem; }
+.kepan-tree summary { cursor:pointer; padding:4px 0; color:var(--accent); font-weight:600; user-select:none; }
+.kepan-grp { padding-left:14px; padding-top:4px; }
+.kepan-leaf { display:inline-block; padding:3px 9px; margin:3px 4px 3px 0; font-size:.76rem; border-radius:11px; cursor:pointer; background:var(--accent-bg); color:var(--accent); }
+.kepan-leaf.on { background:var(--accent); color:#fff; }
+
+/* Group accordion */
+details.grp { background:var(--card); border-radius:var(--r-sm); margin-bottom:6px; box-shadow:0 1px 4px var(--shadow); overflow:hidden; }
+details.grp > summary {
+  list-style:none; cursor:pointer; padding:11px 14px;
+  display:flex; align-items:center; justify-content:space-between;
+  font-family:var(--serif); font-weight:600;
+}
+details.grp > summary::-webkit-details-marker { display:none; }
+details.grp > summary::before { content:"▶"; font-size:.7rem; color:var(--accent); margin-right:8px; transition:transform .2s; }
+details.grp[open] > summary::before { transform:rotate(90deg); }
+details.grp .grp-label { flex:1; }
+details.grp .grp-count { font-size:.78rem; color:var(--muted); font-weight:400; }
+details.grp .grp-body { padding:4px 8px 8px; }
+details.grp.grp-vol { box-shadow:none; background:var(--accent-bg); margin:6px 8px; }
+details.grp.grp-vol > summary { padding:8px 12px; font-size:.92rem; }
+details.grp.grp-vol .grp-body { padding:4px 6px 6px; }
+details.grp .result { box-shadow:none; background:var(--bg); margin-bottom:4px; }
+
+/* Result list */
+.result {
+  background:var(--card); border-radius:var(--r-sm);
+  box-shadow:0 1px 4px var(--shadow); padding:11px 14px; margin-bottom:8px;
+  cursor:pointer; transition:background .15s;
+  display:flex; gap:10px; align-items:flex-start;
+}
+.result:hover { background:var(--accent-bg); }
+.result-body { flex:1; min-width:0; }
+.result-title { font-family:var(--serif); font-size:1rem; font-weight:600; margin-bottom:4px; }
+.result-title.read { color:var(--muted); font-weight:400; }
+.result-title.read::before { content:"✓ "; color:var(--green); }
+.result-meta { font-size:.74rem; color:var(--muted); display:flex; gap:8px; flex-wrap:wrap; }
+
+/* Settings */
+.row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:11px 0; border-bottom:1px solid var(--border);
+  gap:10px;
+}
+.row:last-child { border:none; }
+.row-label { font-size:.92rem; flex:1; min-width:0; }
+.row-label .desc { display:block; font-size:.76rem; color:var(--muted); margin-top:2px; }
+.row-ctrl { flex-shrink:0; }
+.row-ctrl input[type="time"], .row-ctrl select {
+  border:1px solid var(--border); border-radius:var(--r-sm);
+  padding:5px 9px; font-family:inherit; font-size:.88rem;
+  background:var(--bg); color:var(--text); max-width:170px;
+}
+.row-ctrl select { min-width:96px; }
+.row-label { white-space:nowrap; }
+
+.toggle { position:relative; width:42px; height:24px; cursor:pointer; }
+.toggle input { display:none; }
+.toggle .slider {
+  position:absolute; inset:0; background:var(--border); border-radius:12px; transition:.2s;
+}
+.toggle .slider::before {
+  content:""; position:absolute; left:2px; top:2px; width:20px; height:20px;
+  background:#fff; border-radius:50%; transition:.2s;
+}
+.toggle input:checked + .slider { background:var(--accent); }
+.toggle input:checked + .slider::before { transform:translateX(18px); }
+
+.fs-group { display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end; }
+.fs-group button {
+  border:1px solid var(--border); background:var(--bg); cursor:pointer;
+  padding:5px 10px; border-radius:var(--r-sm); font-family:inherit; color:var(--text);
+}
+.fs-group button.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+.fs-group .fs1 { font-size:.75rem; }
+.fs-group .fs2 { font-size:.88rem; }
+.fs-group .fs3 { font-size:1rem; }
+.fs-group .fs4 { font-size:1.15rem; }
+.fs-group .fs5 { font-size:1.3rem; }
+
+.scope-list { padding:8px 0; }
+.scope-list label { display:flex; align-items:center; gap:8px; padding:4px 0; font-size:.88rem; }
+.scope-list input[type="checkbox"] { width:16px; height:16px; accent-color:var(--accent); }
+
+.empty {
+  text-align:center; color:var(--muted); padding:30px 12px; font-size:.9rem;
+}
+
+/* Reader overlay */
+.reader {
+  position:fixed; inset:0; background:var(--bg); z-index:100;
+  display:flex; flex-direction:column;
+  transform:translateX(100%); transition:transform .25s;
+  overflow:hidden;
+}
+.reader.open { transform:translateX(0); }
+.reader-hd {
+  display:flex; align-items:center; gap:8px; padding:14px 14px 10px;
+  border-bottom:1px solid var(--border); background:var(--card);
+}
+.reader-hd .close { background:none; border:none; cursor:pointer; font-size:1.4rem; color:var(--muted); padding:2px 6px; }
+.aa-btn {
+  background:none; border:1px solid var(--border); border-radius:var(--r-sm);
+  cursor:pointer; padding:5px 10px; font-family:inherit; color:var(--accent);
+  font-weight:600; font-size:.95rem; flex-shrink:0;
+}
+.aa-btn:active { transform:scale(.94); }
+.aa-btn.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+.reader-fontbar {
+  background:var(--card); border-bottom:1px solid var(--border);
+  padding:10px 14px; display:flex; flex-direction:column; gap:8px;
+}
+.rfb-row { display:flex; align-items:center; gap:10px; }
+.rfb-label { font-size:.85rem; color:var(--muted); flex-shrink:0; min-width:32px; }
+.rfb-fs { display:flex; gap:4px; flex:1; flex-wrap:wrap; }
+.rfb-fs button {
+  flex:1; min-width:42px; border:1px solid var(--border);
+  background:var(--bg); cursor:pointer; padding:6px 8px;
+  border-radius:var(--r-sm); font-family:inherit; color:var(--text);
+}
+.rfb-fs button.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+.rfb-fs button:nth-child(1) { font-size:.78rem; }
+.rfb-fs button:nth-child(2) { font-size:.9rem; }
+.rfb-fs button:nth-child(3) { font-size:1rem; }
+.rfb-fs button:nth-child(4) { font-size:1.1rem; }
+.rfb-fs button:nth-child(5) { font-size:1.2rem; }
+.rfb-ff {
+  flex:1; border:1px solid var(--border); border-radius:var(--r-sm);
+  padding:6px 10px; font-family:inherit; background:var(--bg); color:var(--text);
+}
+.reader-hd .ti {
+  flex:1; min-width:0; font-family:var(--serif); font-weight:600;
+  font-size:1.02rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.reader-hd .meta { font-size:.72rem; color:var(--muted); margin-top:2px; }
+.reader-bd {
+  flex:1; overflow-y:auto; padding:18px 18px env(safe-area-inset-bottom,18px);
+  max-width:680px; margin:0 auto; width:100%;
+  font-family:var(--reader-font, var(--serif)); font-size:var(--fs); line-height:1.95;
+  -webkit-overflow-scrolling:touch;
+}
+.hook, .quote, .story-title, .reader-hd .ti {
+  font-family:var(--reader-font, var(--serif));
+}
+.reader-section { margin-bottom:24px; }
+.reader-section h3 {
+  font-size:.78rem; font-weight:700; color:var(--accent);
+  letter-spacing:.1em; margin-bottom:10px; font-family:var(--sans);
+}
+.reader-section p { margin-bottom:14px; text-indent:2em; }
+.reader-section.summary p { color:var(--muted); }
+.reader-tags { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:14px; font-family:var(--sans); }
+.reader-tags .tg { font-size:.7rem; background:var(--accent-bg); color:var(--accent); padding:2px 8px; border-radius:10px; }
+.reader-ft {
+  display:flex; gap:8px; padding:10px 14px;
+  border-top:1px solid var(--border); background:var(--card);
+}
+.reader-ft .btn { flex:1; }
+.reader-ft .btn-icon {
+  flex:0 0 42px; width:42px; padding:0; height:38px;
+  display:flex; align-items:center; justify-content:center; font-size:1.1rem;
+}
+
+/* Toast */
+.toast {
+  position:fixed; bottom:80px; left:50%; transform:translateX(-50%);
+  background:var(--text); color:var(--bg); padding:9px 16px;
+  border-radius:20px; font-size:.86rem; z-index:200;
+  opacity:0; pointer-events:none; transition:opacity .2s;
+}
+.toast.show { opacity:.92; }
+
+/* Hidden */
+.hide { display:none !important; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="hd">
+    <h1>業 果 故 事</h1>
+    <div class="date" id="dateLabel"></div>
+  </div>
+
+  <!-- 主頁 -->
+  <section id="page-home">
+    <div class="card">
+      <div class="card-title">意樂提策</div>
+      <blockquote class="quote" id="quoteText"></blockquote>
+      <span class="quote-src" id="quoteSrc"></span>
+    </div>
+
+    <div class="card" id="todayCard" style="cursor:pointer">
+      <div class="card-title">今日故事</div>
+      <div class="story-meta" id="todayMeta"></div>
+      <div class="story-title" id="todayTitle"></div>
+      <div class="hook" id="todayHook"></div>
+      <button class="btn btn-block" id="todayRead">閱讀全文</button>
+    </div>
+
+  </section>
+
+  <!-- 搜尋 -->
+  <section id="page-search" class="hide">
+    <div class="search-bar">
+      <span class="ico">🔍</span>
+      <input id="searchInput" type="search" placeholder="搜尋標題或內文…" enterkeyhint="search" />
+      <button class="btn-sm" id="searchBtn" style="background:var(--accent);color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-family:inherit;font-size:.85rem;">搜尋</button>
+      <button class="btn-sm" id="searchClear" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:4px 6px;font-size:1.1rem;display:none">×</button>
+    </div>
+    <div class="chips" id="bookChips"></div>
+    <details class="kepan-tree hide" id="kepanFilter">
+      <summary>依廣論科判篩選</summary>
+      <div id="kepanContainer"></div>
+    </details>
+    <div id="searchResults"></div>
+  </section>
+
+  <!-- 設定 -->
+  <section id="page-settings" class="hide">
+    <div class="card">
+      <div class="card-title">推播</div>
+      <div class="row">
+        <div class="row-label">啟用每日推播
+          <span class="desc">需允許通知權限</span>
+        </div>
+        <label class="toggle"><input type="checkbox" id="pushToggle"/><span class="slider"></span></label>
+      </div>
+      <div class="row">
+        <div class="row-label">推播時間</div>
+        <div class="row-ctrl"><input type="time" id="pushTime" value="07:00"/></div>
+      </div>
+      <div class="row">
+        <div class="row-label">推播頻率</div>
+        <div class="row-ctrl">
+          <select id="pushFreq">
+            <option value="daily">每日</option>
+            <option value="every2days">每兩日</option>
+            <option value="weekly">每週</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-label">順序模式</div>
+        <div class="row-ctrl">
+          <select id="pushOrder">
+            <option value="random">隨機</option>
+            <option value="sequential">依序</option>
+          </select>
+        </div>
+      </div>
+      <div class="row" style="display:block">
+        <div class="row-label" style="margin-bottom:4px">推播範圍</div>
+        <div class="scope-list" id="scopeList"></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="testPush" style="margin-top:6px">試推送一則</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">閱讀</div>
+      <div class="row" style="display:block">
+        <div class="row-label" style="margin-bottom:6px">字級</div>
+        <div class="row-ctrl fs-group" style="justify-content:space-between">
+          <button data-fs="0.85" class="fs1">小</button>
+          <button data-fs="1.0" class="fs2">中小</button>
+          <button data-fs="1.15" class="fs3">中</button>
+          <button data-fs="1.35" class="fs4">大</button>
+          <button data-fs="1.6" class="fs5">特大</button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-label">字型</div>
+        <div class="row-ctrl">
+          <select id="fontFamily" style="min-width:130px">
+            <option value="serif">明體 (預設)</option>
+            <option value="sans">黑體 (思源)</option>
+            <option value="zhenghei">正黑體</option>
+            <option value="wenkai">文楷</option>
+            <option value="system">系統字型</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-label">深色模式</div>
+        <label class="toggle"><input type="checkbox" id="darkToggle"/><span class="slider"></span></label>
+      </div>
+      <div class="row">
+        <div class="row-label">朗讀語速</div>
+        <div class="row-ctrl">
+          <select id="ttsRate">
+            <option value="0.8">慢</option>
+            <option value="1" selected>正常</option>
+            <option value="1.2">快</option>
+            <option value="1.5">很快</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-label">自然朗讀（曉伊女聲）</div>
+        <label class="toggle"><input type="checkbox" id="ttsOnlineToggle"/><span class="slider"></span></label>
+      </div>
+      <div class="row" id="ttsVoiceRow">
+        <div class="row-label">朗讀聲音</div>
+        <div class="row-ctrl">
+          <select id="ttsVoice" style="min-width:140px"><option value="">系統預設</option></select>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 閱讀視圖 -->
+  <div class="reader" id="reader">
+    <div class="reader-hd">
+      <button class="close" id="readerClose">←</button>
+      <div style="flex:1; min-width:0">
+        <div class="ti" id="readerTitle"></div>
+        <div class="meta" id="readerMeta"></div>
+      </div>
+      <button class="aa-btn" id="readerAaBtn" title="字型 / 字級" aria-label="字型字級">Aa</button>
+    </div>
+    <div class="reader-fontbar hide" id="readerFontBar">
+      <div class="rfb-row">
+        <span class="rfb-label">字級</span>
+        <div class="rfb-fs">
+          <button data-fs="0.85">小</button>
+          <button data-fs="1.0">中小</button>
+          <button data-fs="1.15">中</button>
+          <button data-fs="1.35">大</button>
+          <button data-fs="1.6">特大</button>
+        </div>
+      </div>
+      <div class="rfb-row">
+        <span class="rfb-label">字型</span>
+        <select id="readerFontFamily" class="rfb-ff">
+          <option value="serif">明體</option>
+          <option value="sans">黑體 (思源)</option>
+          <option value="zhenghei">正黑體</option>
+          <option value="wenkai">文楷</option>
+          <option value="system">系統字型</option>
+        </select>
+      </div>
+    </div>
+    <div class="reader-bd" id="readerBody"></div>
+    <div class="reader-ft">
+      <button class="btn btn-icon btn-ghost" id="readerPrev" title="上一篇">‹</button>
+      <button class="btn btn-block" id="readerTTS">🔊 朗讀</button>
+      <button class="btn btn-icon btn-ghost" id="readerNext" title="下一篇">›</button>
+    </div>
+  </div>
+</div>
+
+<nav class="tabs">
+  <button class="tab active" data-page="home"><span class="ico">📖</span><span>主頁</span></button>
+  <button class="tab" data-page="search"><span class="ico">🔍</span><span>搜尋</span></button>
+  <button class="tab" data-page="settings"><span class="ico">⚙️</span><span>設定</span></button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+{
+  "tree": [
+    {
+      "id": "yg.zong",
+      "label": "思總業果",
+      "children": [
+        { "id": "yg.zong.1", "label": "業決定理" },
+        { "id": "yg.zong.2", "label": "業增長廣大" },
+        { "id": "yg.zong.3", "label": "所未造業不會遇" },
+        { "id": "yg.zong.4", "label": "已造業不失壞" }
+      ]
+    },
+    {
+      "id": "yg.bie.hei",
+      "label": "思別業果·黑業",
+      "children": [
+        { "id": "yg.bie.hei.kill", "label": "殺生" },
+        { "id": "yg.bie.hei.steal", "label": "不與取" },
+        { "id": "yg.bie.hei.lust", "label": "欲邪行" },
+        { "id": "yg.bie.hei.lie", "label": "妄語" },
+        { "id": "yg.bie.hei.divide", "label": "離間語" },
+        { "id": "yg.bie.hei.harsh", "label": "粗惡語" },
+        { "id": "yg.bie.hei.idle", "label": "綺語" },
+        { "id": "yg.bie.hei.greed", "label": "貪欲" },
+        { "id": "yg.bie.hei.anger", "label": "瞋恚" },
+        { "id": "yg.bie.hei.wrong", "label": "邪見" }
+      ]
+    },
+    {
+      "id": "yg.bie.bai",
+      "label": "思別業果·白業",
+      "children": [
+        { "id": "yg.bie.bai.10good", "label": "十善業道" }
+      ]
+    },
+    {
+      "id": "yg.cha",
+      "label": "業差別",
+      "children": [
+        { "id": "yg.cha.yinman", "label": "引滿差別" },
+        { "id": "yg.cha.dingbu", "label": "定不定受" },
+        { "id": "yg.cha.yishu", "label": "八種異熟功德" }
+      ]
+    },
+    {
+      "id": "xs",
+      "label": "下士道",
+      "children": [
+        { "id": "xs.death", "label": "念死無常" },
+        { "id": "xs.equsuffer", "label": "三惡趣苦" },
+        { "id": "xs.refuge", "label": "皈依三寶" }
+      ]
+    },
+    {
+      "id": "zs",
+      "label": "中士道",
+      "children": [
+        { "id": "zs.6paths", "label": "六道苦" },
+        { "id": "zs.4truth", "label": "四諦集諦" },
+        { "id": "zs.12yi", "label": "十二緣起" }
+      ]
+    },
+    {
+      "id": "ss",
+      "label": "上士道·六度",
+      "children": [
+        { "id": "ss.dana", "label": "布施" },
+        { "id": "ss.sila", "label": "持戒" },
+        { "id": "ss.ksanti", "label": "忍辱" },
+        { "id": "ss.virya", "label": "精進" },
+        { "id": "ss.dhyana", "label": "靜慮" },
+        { "id": "ss.prajna", "label": "般若" }
+      ]
+    }
+  ],
+  "byId": {}
+}

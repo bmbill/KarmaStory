@@ -1,0 +1,15 @@
+{
+  "name": "worker",
+  "version": "1.0.0",
+  "description": "完全在 Cloudflare 免費額度內。下面流程一次性 ~15 分鐘可以跑完。",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "wrangler": "^4.90.0"
+  }
+}

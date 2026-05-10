@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+worker/node_modules/
+
+# Deploy artifact (built by tools/build-dist.mjs)
+dist/
+
+# Tooling output
+data/audio/samples/
+
+# Cloudflare wrangler local state
+.wrangler/
+.secrets/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.claude/
+*.log
+
+# Environment / secrets
+.env
+.env.local
+.dev.vars
+worker/.dev.vars
+
+# Python
+__pycache__/
+*.pyc
