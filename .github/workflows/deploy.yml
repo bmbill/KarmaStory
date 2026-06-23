@@ -25,7 +25,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22 # wrangler 4.x 需要 Node >= 22
 
       # build-dist.mjs 只用 Node 內建模組，不需要 npm install
       - name: Build dist/
