@@ -36,5 +36,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # 用新版 wrangler；舊版 (action 預設 3.90) 對 assets-only worker 支援不穩
+          wranglerVersion: "4.103.0"
           # 讀取根目錄 wrangler.toml (name = morning-silence-b900, [assets] = ./dist)
           command: deploy
