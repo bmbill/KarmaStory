@@ -6,6 +6,7 @@
   "private": true,
   "scripts": {
     "convert": "node tools/convert-docx.mjs",
+    "convert-novel": "node tools/convert-novel.mjs",
     "hooks": "node tools/write-hooks.mjs",
     "tag-kepan": "node tools/tag-kepan.mjs",
     "tts": "node tools/generate-all-tts.mjs",

@@ -1,0 +1,14 @@
+# 靜態網站 Worker —《業果故事》PWA 本體
+# 用 Cloudflare Workers Static Assets 服務 dist/ 的檔案。
+# name 必須維持 morning-silence-b900，網址才不會變：
+#   https://morning-silence-b900.karma-story-bmbill.workers.dev
+#
+# 部署：先 `npm run build` 產生 dist/，再 `wrangler deploy`
+# (推播 Worker 是另一個專案，設定在 worker/wrangler.toml，互不影響)
+
+name = "morning-silence-b900"
+compatibility_date = "2025-01-01"
+workers_dev = true
+
+[assets]
+directory = "./dist"

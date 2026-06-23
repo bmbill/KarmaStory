@@ -1,7 +1,7 @@
 // 業果故事 PWA — service worker
 // 1) Cache-first 離線快取  2) push 事件顯示通知  3) 點擊通知開故事
 
-const CACHE = "karma-stories-v5";
+const CACHE = "karma-stories-v6";
 const AUDIO_CACHE = "karma-stories-audio-v2";
 const ASSETS = [
   "./",

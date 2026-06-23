@@ -118,6 +118,12 @@ function applyScope(stories, prefs) {
   });
 }
 
+// 單元名稱：小說用「序章／第 X 章／尾聲」，業果故事用「第 X 篇」
+function unitLabel(s) {
+  if (s.kind === "novel") return s.name || `第 ${s.no} 章`;
+  return `第 ${s.no} 篇`;
+}
+
 // 判斷某部書是否有多卷（用於是否在標題列顯示「卷 X」）
 function bookHasMultipleVolumes(book) {
   const vols = new Set();
@@ -164,7 +170,7 @@ function renderHome() {
     $("#todayMeta").innerHTML =
       `<span class="pill">${today.book}</span>` +
       (bookHasMultipleVolumes(today.book) ? `<span>卷 ${today.volume}</span>` : "") +
-      `<span>第 ${today.no} 篇</span>` +
+      `<span>${unitLabel(today)}</span>` +
       `<span>${today.lengthChars} 字</span>`;
     $("#todayTitle").textContent = today.title;
     const hookEl = $("#todayHook");
@@ -293,7 +299,7 @@ function renderResultRow(s) {
       <div class="result-title">${escapeHtml(s.title)}</div>
       <div class="result-meta">
         <span>${s.book}</span>
-        <span>${volPart}第 ${s.no} 篇</span>
+        <span>${volPart}${unitLabel(s)}</span>
         <span>${s.lengthChars} 字</span>
       </div>
     </div>
@@ -316,15 +322,16 @@ function renderGrouped(stories) {
     const volKeys = Object.keys(g.vols).sort((a, b) => +a - +b);
     const showVols = volKeys.length > 1; // 只有 1 卷就不分卷
     const bookKey = `book:${book}`;
+    const unit = stories.some((s) => s.book === book && s.kind === "novel") ? "章" : "篇";
     html.push(`<details class="grp grp-book" data-k="${bookKey}">
-      <summary><span class="grp-label">${book}</span><span class="grp-count">${g.count} 篇</span></summary>
+      <summary><span class="grp-label">${book}</span><span class="grp-count">${g.count} ${unit}</span></summary>
       <div class="grp-body">`);
     if (showVols) {
       for (const v of volKeys) {
         const list = g.vols[v];
         const volKey = `${bookKey}:vol:${v}`;
         html.push(`<details class="grp grp-vol" data-k="${volKey}">
-          <summary><span class="grp-label">卷${v}</span><span class="grp-count">${list.length} 篇</span></summary>
+          <summary><span class="grp-label">卷${v}</span><span class="grp-count">${list.length} ${unit}</span></summary>
           <div class="grp-body">${list.map(renderResultRow).join("")}</div>
         </details>`);
       }
@@ -355,13 +362,19 @@ function closeReader() {
 function renderReader() {
   const s = STATE.reader.current;
   const volPart = bookHasMultipleVolumes(s.book) ? `卷${s.volume} · ` : "";
-  $("#readerTitle").textContent = s.title;
-  $("#readerMeta").textContent = `${s.book} · ${volPart}第 ${s.no} 篇 · ${s.lengthChars} 字`;
+  const isNovel = s.kind === "novel";
+  $("#readerTitle").textContent = isNovel && s.name ? `${s.name} ${s.title}` : s.title;
+  $("#readerMeta").textContent = `${s.book} · ${volPart}${unitLabel(s)} · ${s.lengthChars} 字`;
 
   const sections = [];
-  sections.push(`<div class="reader-section"><h3>白話譯文</h3>${paraHtml(s.body)}</div>`);
-  if (s.afterword) {
-    sections.push(`<div class="reader-section"><h3>業果省思</h3>${paraHtml(s.afterword)}</div>`);
+  if (isNovel) {
+    // 小說：純敘事本文，不加「白話譯文／業果省思」分節標題
+    sections.push(`<div class="reader-section novel">${paraHtml(s.body)}</div>`);
+  } else {
+    sections.push(`<div class="reader-section"><h3>白話譯文</h3>${paraHtml(s.body)}</div>`);
+    if (s.afterword) {
+      sections.push(`<div class="reader-section"><h3>業果省思</h3>${paraHtml(s.afterword)}</div>`);
+    }
   }
   const tags = (s.kepan || [])
     .map((k) => {
@@ -388,7 +401,9 @@ function paraHtml(text) {
   return paras
     .map((p) => p.trim())
     .filter(Boolean)
-    .map((p) => `<p>${escapeHtml(p)}</p>`)
+    .map((p) =>
+      /^[*＊\s]+$/.test(p) ? `<p class="sep">✻</p>` : `<p>${escapeHtml(p)}</p>`
+    )
     .join("");
 }
 
