@@ -449,8 +449,17 @@ details.grp .result { box-shadow:none; background:var(--bg); margin-bottom:4px; 
         </div>
       </div>
       <div class="row">
-        <div class="row-label">自然朗讀（曉伊女聲）</div>
+        <div class="row-label">自然朗讀（預錄音檔）</div>
         <label class="toggle"><input type="checkbox" id="ttsOnlineToggle"/><span class="slider"></span></label>
+      </div>
+      <div class="row" id="ttsOnlineVoiceRow">
+        <div class="row-label">預錄音色</div>
+        <div class="row-ctrl">
+          <select id="ttsOnlineVoice" style="min-width:140px">
+            <option value="edge">曉伊女聲</option>
+            <option value="an">An 的聲音</option>
+          </select>
+        </div>
       </div>
       <div class="row" id="ttsVoiceRow">
         <div class="row-label">朗讀聲音</div>

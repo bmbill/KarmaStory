@@ -29,3 +29,6 @@ worker/.dev.vars
 # Python
 __pycache__/
 *.pyc
+
+# 個人聲音素材 (隱私，不進 repo)
+voice-clone/

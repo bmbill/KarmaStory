@@ -30,6 +30,7 @@ function loadPrefs() {
     ttsRate: "1",
     ttsVoice: "",
     ttsOnline: true,
+    ttsOnlineVoice: "edge",
     expandedGroups: {},
     ...d,
   };
@@ -479,14 +480,28 @@ function playOnlineTTS(text) {
   const s = STATE.reader.current;
   if (!s) return;
   const audio = ensureTtsAudio();
-  audio.src = `./data/audio/${s.id}.webm`;
   audio.playbackRate = parseFloat(STATE.prefs.ttsRate) || 1;
+
+  const voice = STATE.prefs.ttsOnlineVoice || "edge";
+  // 個人聲音 → 先試 personal/, 找不到時退回 edge tts 檔, 再不行用本機 TTS
+  const sources =
+    voice === "an"
+      ? [`./data/audio/personal/${s.id}.webm`, `./data/audio/${s.id}.webm`]
+      : [`./data/audio/${s.id}.webm`];
+
+  let idx = 0;
+  const tryNext = () => {
+    if (idx >= sources.length) {
+      setTTSBtn(false);
+      toast("找不到預錄音檔，改用本機語音");
+      playLocalTTS(text);
+      return;
+    }
+    audio.src = sources[idx++];
+    audio.play().catch(tryNext);
+  };
   setTTSBtn(true);
-  audio.play().catch(() => {
-    setTTSBtn(false);
-    toast("找不到預錄音檔，改用本機語音");
-    playLocalTTS(text);
-  });
+  tryNext();
 }
 
 function stopTTS() {
@@ -524,7 +539,9 @@ function populateVoices() {
 function applyTtsModeUI() {
   const online = !!STATE.prefs.ttsOnline;
   const localRow = $("#ttsVoiceRow");
+  const onlineRow = $("#ttsOnlineVoiceRow");
   if (localRow) localRow.style.display = online ? "none" : "";
+  if (onlineRow) onlineRow.style.display = online ? "" : "none";
 }
 
 // ---------- Settings ----------
@@ -553,6 +570,8 @@ function renderSettings() {
   $("#ttsRate").value = STATE.prefs.ttsRate;
   const onCb = $("#ttsOnlineToggle");
   if (onCb) onCb.checked = !!STATE.prefs.ttsOnline;
+  const onlineVoiceSel = $("#ttsOnlineVoice");
+  if (onlineVoiceSel) onlineVoiceSel.value = STATE.prefs.ttsOnlineVoice || "edge";
   applyTtsModeUI();
 }
 
@@ -757,6 +776,14 @@ function bindEvents() {
       STATE.prefs.ttsOnline = e.target.checked;
       savePrefs();
       applyTtsModeUI();
+      stopTTS();
+    };
+  }
+  const onlineVoiceSel = $("#ttsOnlineVoice");
+  if (onlineVoiceSel) {
+    onlineVoiceSel.onchange = (e) => {
+      STATE.prefs.ttsOnlineVoice = e.target.value;
+      savePrefs();
       stopTTS();
     };
   }
