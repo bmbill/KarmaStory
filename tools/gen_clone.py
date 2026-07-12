@@ -69,6 +69,20 @@ def trim_silence(wav, sr, thresh=0.012, pad=0.04):
     return wav[a:b]
 
 
+def normalize_text(t):
+    # 清掉 F5-TTS 會誤讀成雜音的標點/符號，保留自然停頓的 。，、；！？
+    t = t.replace("：", "，")            # 全形冒號 → 停頓
+    t = re.sub(r"—+", "，", t)          # 破折號 → 停頓
+    t = t.replace("…", "，").replace("⋯", "，")
+    # 引號/括號整組移除（前後多半已有標點可停頓）
+    t = re.sub(r"[「」『』（）()【】《》〈〉〔〕\[\]“”‘’\"']", "", t)
+    # 收斂重複標點
+    t = re.sub(r"，{2,}", "，", t)
+    t = re.sub(r"，([。！？；、])", r"\1", t)   # 逗號緊接其他標點 → 去逗號
+    t = re.sub(r"([。！？])[，、；]", r"\1", t)
+    return t
+
+
 def body_text(s):
     b = s.get("body", "")
     if isinstance(b, list):
@@ -76,7 +90,7 @@ def body_text(s):
     parts = [b]
     if s.get("afterword"):
         parts.append(s["afterword"])
-    return "\n".join([p for p in parts if p])
+    return normalize_text("\n".join([p for p in parts if p]))
 
 
 ref_text = open(args.ref_text_file, encoding="utf-8").read().strip()
