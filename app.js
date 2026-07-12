@@ -433,32 +433,61 @@ function navReader(delta) {
 }
 
 // ---------- TTS ----------
+// 三態：idle（未播）/ playing（播放中）/ paused（暫停，可續播）
 let ttsUtter = null;
 let ttsAudio = null; // 線上音色用 <audio>
+let ttsMode = null; // "online" | "local" | null
+let ttsStoryId = null; // 目前這段朗讀屬於哪一篇，換篇要重來
 
 function ensureTtsAudio() {
   if (ttsAudio) return ttsAudio;
   ttsAudio = new Audio();
   ttsAudio.preload = "auto";
-  ttsAudio.addEventListener("ended", () => setTTSBtn(false));
+  ttsAudio.addEventListener("ended", () => {
+    ttsMode = null;
+    setTTSBtn("idle");
+  });
   ttsAudio.addEventListener("error", () => {
-    setTTSBtn(false);
+    // 只處理「已播放一段後」的中途錯誤；載入階段的 fallback 交給 tryNext
+    if (ttsMode === "online" && ttsAudio.currentTime > 0) {
+      ttsMode = null;
+      setTTSBtn("idle");
+    }
   });
   return ttsAudio;
 }
 
-function isOnlineTtsPlaying() {
-  return ttsAudio && !ttsAudio.paused && !ttsAudio.ended;
+// 目前朗讀狀態
+function ttsState() {
+  if (ttsMode === "online" && ttsAudio) {
+    if (!ttsAudio.paused && !ttsAudio.ended) return "playing";
+    if (ttsAudio.currentTime > 0 && !ttsAudio.ended) return "paused";
+  }
+  if (ttsMode === "local") {
+    if (speechSynthesis.paused) return "paused";
+    if (speechSynthesis.speaking) return "playing";
+  }
+  return "idle";
 }
 
 function toggleTTS() {
-  if ((ttsUtter && speechSynthesis.speaking) || isOnlineTtsPlaying()) {
-    stopTTS();
-    return;
-  }
   const s = STATE.reader.current;
   if (!s) return;
+  // 換了篇章：先整個重來
+  if (ttsStoryId && ttsStoryId !== s.id) stopTTS();
+
+  const state = ttsState();
+  if (state === "playing") {
+    pauseTTS();
+    return;
+  }
+  if (state === "paused") {
+    resumeTTS();
+    return;
+  }
+  // idle → 從頭開始
   const text = [bodyText(s.body), s.afterword].filter(Boolean).join("\n");
+  ttsStoryId = s.id;
   if (STATE.prefs.ttsOnline) {
     playOnlineTTS(text);
   } else {
@@ -466,7 +495,23 @@ function toggleTTS() {
   }
 }
 
+function pauseTTS() {
+  if (ttsMode === "online" && ttsAudio) ttsAudio.pause();
+  else if (ttsMode === "local") speechSynthesis.pause();
+  setTTSBtn("paused");
+}
+
+function resumeTTS() {
+  if (ttsMode === "online" && ttsAudio) {
+    ttsAudio.play().catch(() => setTTSBtn("idle"));
+  } else if (ttsMode === "local") {
+    speechSynthesis.resume();
+  }
+  setTTSBtn("playing");
+}
+
 function playLocalTTS(text) {
+  ttsMode = "local";
   ttsUtter = new SpeechSynthesisUtterance(text);
   ttsUtter.lang = "zh-TW";
   ttsUtter.rate = parseFloat(STATE.prefs.ttsRate) || 1;
@@ -481,20 +526,23 @@ function playLocalTTS(text) {
   if (chosen) ttsUtter.voice = chosen;
   ttsUtter.onend = () => {
     ttsUtter = null;
-    setTTSBtn(false);
+    ttsMode = null;
+    setTTSBtn("idle");
   };
   ttsUtter.onerror = () => {
     ttsUtter = null;
-    setTTSBtn(false);
+    ttsMode = null;
+    setTTSBtn("idle");
   };
   speechSynthesis.speak(ttsUtter);
-  setTTSBtn(true);
+  setTTSBtn("playing");
 }
 
 function playOnlineTTS(text) {
   const s = STATE.reader.current;
   if (!s) return;
   const audio = ensureTtsAudio();
+  ttsMode = "online";
   audio.playbackRate = parseFloat(STATE.prefs.ttsRate) || 1;
 
   const voice = STATE.prefs.ttsOnlineVoice || "edge";
@@ -507,7 +555,6 @@ function playOnlineTTS(text) {
   let idx = 0;
   const tryNext = () => {
     if (idx >= sources.length) {
-      setTTSBtn(false);
       toast("找不到預錄音檔，改用本機語音");
       playLocalTTS(text);
       return;
@@ -515,7 +562,7 @@ function playOnlineTTS(text) {
     audio.src = sources[idx++];
     audio.play().catch(tryNext);
   };
-  setTTSBtn(true);
+  setTTSBtn("playing");
   tryNext();
 }
 
@@ -526,11 +573,18 @@ function stopTTS() {
     ttsAudio.pause();
     ttsAudio.currentTime = 0;
   }
-  setTTSBtn(false);
+  ttsMode = null;
+  ttsStoryId = null;
+  setTTSBtn("idle");
 }
-function setTTSBtn(playing) {
+function setTTSBtn(state) {
   const btn = $("#readerTTS");
-  if (btn) btn.textContent = playing ? "⏸ 停止" : "🔊 朗讀";
+  if (!btn) return;
+  // 相容舊呼叫：傳 boolean 時 true=playing
+  if (state === true) state = "playing";
+  else if (state === false) state = "idle";
+  btn.textContent =
+    state === "playing" ? "⏸ 暫停" : state === "paused" ? "▶ 繼續" : "🔊 朗讀";
 }
 
 function populateVoices() {
