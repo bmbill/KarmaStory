@@ -54,7 +54,7 @@ for (const item of ITEMS) {
     console.warn(`略過 (不存在): ${item}`);
     continue;
   }
-  // audio 子目錄: 只複製 .webm
+  // audio 目錄: 複製頂層 .webm，以及 personal/ 子目錄的 .webm
   if (item === "data/audio") {
     await mkdir(dst, { recursive: true });
     const files = (await readdir(src)).filter((f) => f.endsWith(".webm"));
@@ -62,7 +62,23 @@ for (const item of ITEMS) {
       await copyFile(join(src, f), join(dst, f));
       count++;
     }
-    console.log(`同步 data/audio/ (${files.length} 個 .webm)`);
+    let personalCount = 0;
+    const personalSrc = join(src, "personal");
+    if (await isDir(personalSrc)) {
+      const pdst = join(dst, "personal");
+      await mkdir(pdst, { recursive: true });
+      const pfiles = (await readdir(personalSrc)).filter((f) => f.endsWith(".webm"));
+      for (const f of pfiles) {
+        await copyFile(join(personalSrc, f), join(pdst, f));
+        count++;
+        personalCount++;
+      }
+    }
+    console.log(
+      `同步 data/audio/ (${files.length} 個 .webm` +
+        (personalCount ? ` + personal/ ${personalCount} 個` : "") +
+        `)`
+    );
     continue;
   }
   await copyRecursive(src, dst);
