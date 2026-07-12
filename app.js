@@ -543,10 +543,13 @@ function playOnlineTTS(text) {
   if (!s) return;
   const audio = ensureTtsAudio();
   ttsMode = "online";
+  const rate = parseFloat(STATE.prefs.ttsRate) || 1;
   audio.preservesPitch = true; // 加速不變調（保持音高）
   audio.mozPreservesPitch = true;
   audio.webkitPreservesPitch = true;
-  audio.playbackRate = parseFloat(STATE.prefs.ttsRate) || 1;
+  // 載入新 src 會把 playbackRate 重設為 defaultPlaybackRate，故兩者都設
+  audio.defaultPlaybackRate = rate;
+  audio.playbackRate = rate;
 
   const voice = STATE.prefs.ttsOnlineVoice || "edge";
   // 個人聲音 → 先試 personal/, 找不到時退回 edge tts 檔, 再不行用本機 TTS
@@ -563,7 +566,13 @@ function playOnlineTTS(text) {
       return;
     }
     audio.src = sources[idx++];
-    audio.play().catch(tryNext);
+    audio.defaultPlaybackRate = rate;
+    audio
+      .play()
+      .then(() => {
+        audio.playbackRate = rate; // 播放開始後再套一次，確保生效
+      })
+      .catch(tryNext);
   };
   setTTSBtn("playing");
   tryNext();
