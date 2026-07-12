@@ -543,6 +543,9 @@ function playOnlineTTS(text) {
   if (!s) return;
   const audio = ensureTtsAudio();
   ttsMode = "online";
+  audio.preservesPitch = true; // 加速不變調（保持音高）
+  audio.mozPreservesPitch = true;
+  audio.webkitPreservesPitch = true;
   audio.playbackRate = parseFloat(STATE.prefs.ttsRate) || 1;
 
   const voice = STATE.prefs.ttsOnlineVoice || "edge";
@@ -834,6 +837,10 @@ function bindEvents() {
   $("#ttsRate").onchange = (e) => {
     STATE.prefs.ttsRate = e.target.value;
     savePrefs();
+    // 播放中即時套用新語速（預錄音檔）
+    const rate = parseFloat(STATE.prefs.ttsRate) || 1;
+    if (ttsMode === "online" && ttsAudio) ttsAudio.playbackRate = rate;
+    // 本機語音無法中途變速，下次朗讀才生效
   };
   $("#ttsVoice").onchange = (e) => {
     STATE.prefs.ttsVoice = e.target.value;
