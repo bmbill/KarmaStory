@@ -2,7 +2,7 @@
 // 1) Cache-first 離線快取  2) push 事件顯示通知  3) 點擊通知開故事
 
 const CACHE = "karma-stories-v9";
-const AUDIO_CACHE = "karma-stories-audio-v2";
+const AUDIO_CACHE = "karma-stories-audio-v3";
 const ASSETS = [
   "./",
   "./index.html",
