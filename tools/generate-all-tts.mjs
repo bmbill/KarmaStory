@@ -59,7 +59,7 @@ for (let i = 0; i < stories.length; i++) {
     process.stdout.write(`${tag} ${s.id} skip (exists)\n`);
     continue;
   }
-  const text = [bodyText(s.body), s.afterword].filter(Boolean).join("\n");
+  const text = [bodyText(s.body), s.afterword].filter(Boolean).join("\n").replace(/\*\*/g, "");
   if (!text.trim()) {
     process.stdout.write(`${tag} ${s.id} skip (empty text)\n`);
     skipCount++;

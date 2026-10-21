@@ -397,13 +397,18 @@ function renderReader() {
   $("#readerNext").disabled = STATE.reader.idx >= STATE.reader.listIds.length - 1;
 }
 
+// **粗體** → <strong>（先 escape 再轉，避免注入）
+function inlineHtml(p) {
+  return escapeHtml(p).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+}
+
 function paraHtml(text) {
   const paras = Array.isArray(text) ? text : String(text).split(/\n+/);
   return paras
     .map((p) => p.trim())
     .filter(Boolean)
     .map((p) =>
-      /^[*＊\s]+$/.test(p) ? `<p class="sep">✻</p>` : `<p>${escapeHtml(p)}</p>`
+      /^[*＊\s]+$/.test(p) ? `<p class="sep">✻</p>` : `<p>${inlineHtml(p)}</p>`
     )
     .join("");
 }
@@ -486,7 +491,10 @@ function toggleTTS() {
     return;
   }
   // idle → 從頭開始
-  const text = [bodyText(s.body), s.afterword].filter(Boolean).join("\n");
+  const text = [bodyText(s.body), s.afterword]
+    .filter(Boolean)
+    .join("\n")
+    .replace(/\*\*/g, ""); // 朗讀時去掉粗體記號
   ttsStoryId = s.id;
   if (STATE.prefs.ttsOnline) {
     playOnlineTTS(text);
