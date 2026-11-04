@@ -129,6 +129,18 @@ input, select, textarea, button { font-size:16px; }
 .prog-fill { height:100%; background:var(--accent); transition:width .3s; }
 .prog-num { font-size:.82rem; color:var(--muted); white-space:nowrap; }
 
+/* 讀書進度（整本書書籤） */
+.bk-row { padding:10px 0; border-top:1px solid var(--border); display:grid; grid-template-columns:1fr auto; gap:4px 10px; align-items:center; }
+.bk-row:first-child { border-top:none; padding-top:2px; }
+.bk-name { font-family:var(--serif); font-size:1.08rem; font-weight:700; grid-column:1; }
+.bk-where { grid-column:1; font-size:.84rem; color:var(--text); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.bk-where.muted { color:var(--muted); }
+.bk-row .prog-wrap { grid-column:1; margin-top:2px; }
+.bk-go { grid-column:2; grid-row:1 / span 3; white-space:nowrap; }
+.bk-mark { margin-left:8px; font-size:.72rem; font-weight:600; color:var(--accent); background:var(--accent-bg); padding:1px 7px; border-radius:9px; white-space:nowrap; }
+.sec-hd { font-size:.8rem; font-weight:600; color:var(--muted); letter-spacing:.06em; margin:14px 4px 6px; }
+.sec-hd:first-child { margin-top:2px; }
+
 /* Search */
 .search-bar {
   display:flex; gap:6px; align-items:center; background:var(--card);
@@ -350,6 +362,11 @@ details.grp .result { box-shadow:none; background:var(--bg); margin-bottom:4px; 
       <div class="story-title" id="todayTitle"></div>
       <div class="hook" id="todayHook"></div>
       <button class="btn btn-block" id="todayRead">閱讀全文</button>
+    </div>
+
+    <div class="card hide" id="booksCard">
+      <div class="card-title">讀書進度</div>
+      <div id="booksList"></div>
     </div>
 
   </section>

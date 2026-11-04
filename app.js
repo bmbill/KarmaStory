@@ -8,6 +8,7 @@ const STATE = {
   kepan: { tree: [], byId: {} },
   prefs: loadPrefs(),
   read: loadRead(),
+  bookmarks: loadBookmarks(),
   reader: { current: null, listIds: [], idx: -1 },
   searchFilters: { q: "", book: "all", kepan: null },
 };
@@ -51,6 +52,17 @@ function loadRead() {
 }
 function saveRead() {
   localStorage.setItem("ks-read", JSON.stringify([...STATE.read]));
+}
+// 整本書的書籤：{ [book]: storyId }，記錄每本書最後讀到的段落
+function loadBookmarks() {
+  try {
+    return JSON.parse(localStorage.getItem("ks-bookmarks") || "{}");
+  } catch {
+    return {};
+  }
+}
+function saveBookmarks() {
+  localStorage.setItem("ks-bookmarks", JSON.stringify(STATE.bookmarks));
 }
 
 // ---------- Utils ----------
@@ -125,6 +137,18 @@ function unitLabel(s) {
   return `第 ${s.no} 篇`;
 }
 
+// 整本書（一夢漫言、起信津梁…）：章節前後相連，要從頭依序讀；
+// 其他（雜寶藏經、賢愚經…）是一則則獨立的業果故事。資料上以 kind === "novel" 區分。
+function isFullBook(book) {
+  return STATE.stories.some((s) => s.book === book && s.kind === "novel");
+}
+function bookStories(book) {
+  return STATE.stories.filter((s) => s.book === book);
+}
+function fullBooks() {
+  return [...new Set(STATE.stories.map((s) => s.book))].filter(isFullBook);
+}
+
 // 判斷某部書是否有多卷（用於是否在標題列顯示「卷 X」）
 function bookHasMultipleVolumes(book) {
   const vols = new Set();
@@ -183,11 +207,49 @@ function renderHome() {
     };
     $("#todayRead").onclick = () => openReader(today.id);
   }
+  renderBooks();
+}
+
+// 首頁「讀書進度」：每本整本書一列，顯示書籤位置與進度，按下從書籤處繼續
+function renderBooks() {
+  const books = fullBooks();
+  $("#booksCard").classList.toggle("hide", !books.length);
+  $("#booksList").innerHTML = books
+    .map((book) => {
+      const list = bookStories(book);
+      const idx = list.findIndex((s) => s.id === STATE.bookmarks[book]);
+      const done = list.filter((s) => STATE.read.has(s.id)).length;
+      const pct = Math.round((done / list.length) * 100);
+      const unit = list[0]?.name?.endsWith("日") ? "段" : "章";
+      const where =
+        idx < 0
+          ? `<span class="bk-where muted">尚未開始・共 ${list.length} ${unit}</span>`
+          : `<span class="bk-where">🔖 ${escapeHtml(unitLabel(list[idx]))}　${escapeHtml(list[idx].title)}</span>`;
+      const btn = idx < 0 ? "開始閱讀" : "繼續閱讀";
+      return `<div class="bk-row">
+        <div class="bk-name">${escapeHtml(book)}</div>
+        ${where}
+        <div class="prog-wrap">
+          <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+          <span class="prog-num">已讀 ${done} / ${list.length}</span>
+        </div>
+        <button class="btn btn-sm bk-go" data-book="${escapeHtml(book)}">${btn}</button>
+      </div>`;
+    })
+    .join("");
+  $$("#booksList .bk-go").forEach((b) => {
+    b.onclick = () => {
+      const list = bookStories(b.dataset.book);
+      const bm = list.find((s) => s.id === STATE.bookmarks[b.dataset.book]);
+      openReader((bm || list[0]).id);
+    };
+  });
 }
 
 // ---------- Search ----------
 function renderBookChips() {
-  const books = ["全部", ...new Set(STATE.stories.map((s) => s.book))];
+  const all = [...new Set(STATE.stories.map((s) => s.book))];
+  const books = ["全部", ...all.filter(isFullBook), ...all.filter((b) => !isFullBook(b))];
   $("#bookChips").innerHTML = books
     .map((b, i) => {
       const v = i === 0 ? "all" : b;
@@ -295,9 +357,13 @@ function renderSearchResults() {
 
 function renderResultRow(s) {
   const volPart = bookHasMultipleVolumes(s.book) ? `卷${s.volume} · ` : "";
+  // 整本書才顯示已讀勾勾與書籤；業果故事維持不顯示
+  const full = s.kind === "novel";
+  const readCls = full && STATE.read.has(s.id) ? " read" : "";
+  const mark = full && STATE.bookmarks[s.book] === s.id ? `<span class="bk-mark">🔖 讀到這裡</span>` : "";
   return `<div class="result" data-id="${s.id}">
     <div class="result-body">
-      <div class="result-title">${escapeHtml(s.title)}</div>
+      <div class="result-title${readCls}">${escapeHtml(s.title)}${mark}</div>
       <div class="result-meta">
         <span>${s.book}</span>
         <span>${volPart}${unitLabel(s)}</span>
@@ -318,12 +384,28 @@ function renderGrouped(stories) {
     groups[bk].vols[vol] = groups[bk].vols[vol] || [];
     groups[bk].vols[vol].push(s);
   }
+  // 分兩區：整本書在前、業果故事集在後
+  const entries = Object.entries(groups);
+  const sections = [
+    ["整本書・依序閱讀", entries.filter(([b]) => isFullBook(b))],
+    ["業果故事", entries.filter(([b]) => !isFullBook(b))],
+  ].filter(([, list]) => list.length);
   const html = [];
-  for (const [book, g] of Object.entries(groups)) {
+  for (const [label, list] of sections) {
+    if (sections.length > 1) html.push(`<div class="sec-hd">${label}</div>`);
+    html.push(renderBookGroups(list, stories));
+  }
+  return html.join("");
+}
+
+function renderBookGroups(entries, stories) {
+  const html = [];
+  for (const [book, g] of entries) {
     const volKeys = Object.keys(g.vols).sort((a, b) => +a - +b);
     const showVols = volKeys.length > 1; // 只有 1 卷就不分卷
     const bookKey = `book:${book}`;
-    const unit = stories.some((s) => s.book === book && s.kind === "novel") ? "章" : "篇";
+    const first = stories.find((s) => s.book === book);
+    const unit = first?.kind !== "novel" ? "篇" : first.name?.endsWith("日") ? "段" : "章";
     html.push(`<details class="grp grp-book" data-k="${bookKey}">
       <summary><span class="grp-label">${book}</span><span class="grp-count">${g.count} ${unit}</span></summary>
       <div class="grp-body">`);
@@ -349,6 +431,8 @@ function openReader(id, listIds = null) {
   const s = STATE.stories.find((x) => x.id === id);
   if (!s) return;
   STATE.reader.current = s;
+  // 整本書：上一篇／下一篇只在同一本書內前後翻
+  if (isFullBook(s.book)) listIds = bookStories(s.book).map((x) => x.id);
   STATE.reader.listIds = listIds || STATE.stories.map((x) => x.id);
   STATE.reader.idx = STATE.reader.listIds.indexOf(id);
   renderReader();
@@ -358,6 +442,9 @@ function openReader(id, listIds = null) {
 function closeReader() {
   $("#reader").classList.remove("open");
   stopTTS();
+  // 回到列表時更新書籤與已讀標記
+  renderBooks();
+  renderSearchResults();
 }
 
 function renderReader() {
@@ -392,6 +479,11 @@ function renderReader() {
   if (!STATE.read.has(s.id)) {
     STATE.read.add(s.id);
     saveRead();
+  }
+  // 整本書：自動把書籤夾在目前這一段
+  if (s.kind === "novel" && STATE.bookmarks[s.book] !== s.id) {
+    STATE.bookmarks[s.book] = s.id;
+    saveBookmarks();
   }
   $("#readerPrev").disabled = STATE.reader.idx <= 0;
   $("#readerNext").disabled = STATE.reader.idx >= STATE.reader.listIds.length - 1;
