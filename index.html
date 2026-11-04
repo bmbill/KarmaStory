@@ -315,6 +315,26 @@ details.grp .result { box-shadow:none; background:var(--bg); margin-bottom:4px; 
 .reader-section p { margin-bottom:14px; text-indent:2em; }
 .reader-section p.sep { text-align:center; text-indent:0; color:var(--accent-lt); letter-spacing:.4em; margin:22px 0; }
 .reader-section.summary p { color:var(--muted); }
+/* 偈頌：原偈（七言，較大、主題色）在上，白話譯文（較小、灰）在下 */
+.verse {
+  margin:6px 0 22px; padding:12px 16px 12px 18px;
+  background:var(--accent-bg); border-left:3px solid var(--accent);
+  border-radius:0 var(--r-sm) var(--r-sm) 0;
+}
+.verse span { display:block; }
+.verse-orig {
+  font-family:var(--serif); font-weight:600; color:var(--accent);
+  letter-spacing:.12em; line-height:1.9;
+}
+.verse-tr {
+  margin-top:10px; padding-top:10px; border-top:1px dashed var(--border);
+  font-size:.9em; color:var(--muted); line-height:1.85;
+}
+.verse-orig + .verse-tr::before {
+  content:"白話"; display:inline-block; margin-bottom:4px;
+  font-size:.72rem; letter-spacing:.1em; color:var(--accent);
+  border:1px solid var(--accent); border-radius:8px; padding:0 6px;
+}
 .reader-tags { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:14px; font-family:var(--sans); }
 .reader-tags .tg { font-size:.7rem; background:var(--accent-bg); color:var(--accent); padding:2px 8px; border-radius:10px; }
 .reader-ft {

@@ -309,7 +309,11 @@ function matchKepan(story, kid) {
 }
 
 function bodyText(body) {
-  return Array.isArray(body) ? body.join("\n") : String(body || "");
+  // 去掉偈頌標記，搜尋與朗讀只看文字
+  return (Array.isArray(body) ? body.join("\n") : String(body || ""))
+    .split("\n")
+    .filter((l) => !VERSE_MARK.test(l.trim()))
+    .join("\n");
 }
 
 function renderSearchResults() {
@@ -494,15 +498,34 @@ function inlineHtml(p) {
   return escapeHtml(p).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
 }
 
+// 偈頌區塊：本文中以
+//   〔偈〕 原偈各句… 〔譯〕 白話各句… 〔/偈〕
+// 標記（每句一行），排成「原偈在上、白話在下」的偈頌框。
+const VERSE_MARK = /^〔\/?[偈譯]〕$/;
+
 function paraHtml(text) {
-  const paras = Array.isArray(text) ? text : String(text).split(/\n+/);
-  return paras
+  const paras = (Array.isArray(text) ? text : String(text).split(/\n+/))
     .map((p) => p.trim())
-    .filter(Boolean)
-    .map((p) =>
-      /^[*＊\s]+$/.test(p) ? `<p class="sep">✻</p>` : `<p>${inlineHtml(p)}</p>`
-    )
-    .join("");
+    .filter(Boolean);
+  const out = [];
+  for (let i = 0; i < paras.length; i++) {
+    const p = paras[i];
+    if (p === "〔偈〕") {
+      const orig = [];
+      const tr = [];
+      let cur = orig;
+      for (i++; i < paras.length && paras[i] !== "〔/偈〕"; i++) {
+        if (paras[i] === "〔譯〕") cur = tr;
+        else cur.push(paras[i]);
+      }
+      const lines = (arr, cls) =>
+        arr.length ? `<div class="${cls}">${arr.map((l) => `<span>${inlineHtml(l)}</span>`).join("")}</div>` : "";
+      out.push(`<div class="verse">${lines(orig, "verse-orig")}${lines(tr, "verse-tr")}</div>`);
+      continue;
+    }
+    out.push(/^[*＊\s]+$/.test(p) ? `<p class="sep">✻</p>` : `<p>${inlineHtml(p)}</p>`);
+  }
+  return out.join("");
 }
 
 function escapeHtml(s) {
